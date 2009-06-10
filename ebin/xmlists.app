@@ -1,0 +1,10 @@
+{application, xmlists,
+ [{description, "XMLists"},
+  {vsn, "0.1.0"},
+  {modules, [xmlists,
+             htmlists]},
+  {registered, []},
+  {included_applications, []},
+  {applications, [kernel, stdlib]},
+  {env, []},
+  {mod, []}]}.
