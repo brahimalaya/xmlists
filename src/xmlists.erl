@@ -9,12 +9,6 @@
 -define(XML(Encoding),
             [<<"<?xml version=\"1.0\" encoding=\"">>, Encoding|<<"\"?>\n">>]).
 
--define(NAMED_ENTITIES, [{"&",  "\\&amp;"},
-                         {"<",  "\\&lt;"},
-                         {">",  "\\&gt;"},
-                         {"'",  "\\&apos;"},
-                         {"\"", "\\&quot;"}]).
-
 render(XMList) ->
     render(XMList, []).
 
@@ -100,8 +94,22 @@ attribute({Attrib}) ->
 attribute({Attrib, Value}) ->
     [atom_to_list(Attrib), $=, $", to_iolist(Value), $"].
 
-encode(Text) ->
-    lists:foldl(fun replace/2, Text, ?NAMED_ENTITIES).
+%% encode("<foo>") -> "&lt;foo&gt;"
+encode(Text) when is_binary(Text) -> encode_bin(Text, <<>>);
+encode(Text) when is_list(Text)   -> encode_list(Text, []).
 
-replace({Find, Replace}, Text) ->
-    re:replace(Text, Find, Replace, [global]).
+encode_bin(<<$&, R/binary>>, A) -> encode_bin(R, <<A/binary, "&amp;">>);
+encode_bin(<<$<, R/binary>>, A) -> encode_bin(R, <<A/binary, "&lt;">>);
+encode_bin(<<$>, R/binary>>, A) -> encode_bin(R, <<A/binary, "&gt;">>);
+encode_bin(<<$', R/binary>>, A) -> encode_bin(R, <<A/binary, "&apos;">>);
+encode_bin(<<$", R/binary>>, A) -> encode_bin(R, <<A/binary, "&quot;">>);
+encode_bin(<<H,  R/binary>>, A) -> encode_bin(R, <<A/binary, H>>);
+encode_bin(<<>>, A)             -> A.
+
+encode_list([$&|T], A) -> encode_list(T, ";pma&"  ++ A);
+encode_list([$<|T], A) -> encode_list(T, ";tl&"   ++ A);
+encode_list([$>|T], A) -> encode_list(T, ";tg&"   ++ A);
+encode_list([$'|T], A) -> encode_list(T, ";sopa&" ++ A);
+encode_list([$"|T], A) -> encode_list(T, ";touq&" ++ A);
+encode_list([H|T],  A) -> encode_list(T, [H|A]);
+encode_list([],     A) -> lists:reverse(A).
