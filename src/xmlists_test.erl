@@ -68,6 +68,16 @@ content_test() ->
     X = "<foo>back2back</foo>",
     ?eq(l(L), x(X)).
 
+encoding_list_test() ->
+    L = "a'<&>_\"o",
+    X = "a&apos;&lt;&amp;&gt;_&quot;o",
+    ?eq(l(L), x(X)).
+
+encoding_binary_test() ->
+    L = <<"a'<&>_\"o">>,
+    X = <<"a&apos;&lt;&amp;&gt;_&quot;o">>,
+    ?eq(l(L), x(X)).
+
 deep_test() ->
     L = [[[foo,
             [[xoo]|[[bar]]]]]],
