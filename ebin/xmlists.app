@@ -1,6 +1,6 @@
 {application, xmlists,
  [{description, "XMLists"},
-  {vsn, "0.1.0"},
+  {vsn, "0.1.1"},
   {modules, [xmlists,
              htmlists]},
   {registered, []},

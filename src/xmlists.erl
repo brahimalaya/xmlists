@@ -3,8 +3,7 @@
 -module(xmlists).
 
 -export([render/1,
-         render/2,
-         encode/1]).
+         render/2]).
 
 -define(XML(Encoding),
             [<<"<?xml version=\"1.0\" encoding=\"">>, Encoding|<<"\"?>\n">>]).
@@ -43,8 +42,8 @@ to_iolist({raw, Content}, _) ->
 to_iolist(Content, _) ->
     to_iolist(Content).
 
-to_iolist(Val) when is_list(Val)    -> encode(Val);
-to_iolist(Val) when is_binary(Val)  -> encode(Val);
+to_iolist(Val) when is_list(Val)    -> xmlists_entities:encode(Val);
+to_iolist(Val) when is_binary(Val)  -> xmlists_entities:encode(Val);
 to_iolist(Val) when is_integer(Val) -> integer_to_list(Val);
 to_iolist(Val) when is_float(Val)   -> io_lib:format("~f", [Val]);
 to_iolist(Val) when is_atom(Val)    -> atom_to_list(Val).
@@ -93,23 +92,3 @@ attribute({Attrib}) ->
     attribute({Attrib, Attrib});
 attribute({Attrib, Value}) ->
     [atom_to_list(Attrib), $=, $", to_iolist(Value), $"].
-
-%% encode("<foo>") -> "&lt;foo&gt;"
-encode(Text) when is_binary(Text) -> encode_bin(Text, <<>>);
-encode(Text) when is_list(Text)   -> encode_list(Text, []).
-
-encode_bin(<<$&, R/binary>>, A) -> encode_bin(R, <<A/binary, "&amp;">>);
-encode_bin(<<$<, R/binary>>, A) -> encode_bin(R, <<A/binary, "&lt;">>);
-encode_bin(<<$>, R/binary>>, A) -> encode_bin(R, <<A/binary, "&gt;">>);
-encode_bin(<<$', R/binary>>, A) -> encode_bin(R, <<A/binary, "&apos;">>);
-encode_bin(<<$", R/binary>>, A) -> encode_bin(R, <<A/binary, "&quot;">>);
-encode_bin(<<H,  R/binary>>, A) -> encode_bin(R, <<A/binary, H>>);
-encode_bin(<<>>, A)             -> A.
-
-encode_list([$&|T], A) -> encode_list(T, ";pma&"  ++ A);
-encode_list([$<|T], A) -> encode_list(T, ";tl&"   ++ A);
-encode_list([$>|T], A) -> encode_list(T, ";tg&"   ++ A);
-encode_list([$'|T], A) -> encode_list(T, ";sopa&" ++ A);
-encode_list([$"|T], A) -> encode_list(T, ";touq&" ++ A);
-encode_list([H|T],  A) -> encode_list(T, [H|A]);
-encode_list([],     A) -> lists:reverse(A).
